@@ -59,6 +59,15 @@
             font-size: 24px;
             color: #5c677d;
         }
+        .message {
+            background-color: #5c677d;
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            max-width: 80%;
+            align-self: flex-end; /* Align user messages to the right */
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -93,7 +102,46 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // చాట్‌బాట్ లాజిక్ ఇక్కడ వస్తుంది
+    // DOM ఎలిమెంట్స్‌ను ఎంచుకోవడం
+    const userInput = document.getElementById("user-input");
+    const micButton = document.getElementById("mic-button");
+    const chatBox = document.getElementById("chat-box");
+
+    // సందేశాన్ని పంపే ఫంక్షన్
+    function sendMessage() {
+        const message = userInput.value;
+        if (message.trim() === "") return;
+
+        // చాట్ బాక్స్‌లో యూజర్ సందేశాన్ని చూపించడం
+        const userMessageDiv = document.createElement("div");
+        userMessageDiv.classList.add("message");
+        userMessageDiv.textContent = message;
+        chatBox.appendChild(userMessageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Firebase లో సందేశాన్ని సేవ్ చేయడం
+        db.collection("messages").add({
+            text: message,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // ఇన్పుట్ బాక్స్‌ను ఖాళీ చేయడం
+        userInput.value = "";
+    }
+
+    // Enter నొక్కితే సందేశం పంపడానికి
+    userInput.addEventListener("keyup", function(event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+
+    // మైక్ బటన్ క్లిక్ చేసినప్పుడు
+    micButton.addEventListener("click", function() {
+        alert("మైక్ బటన్ పనిచేస్తోంది! వాయిస్ రికార్డింగ్ ఫీచర్ ఇంకా జోడించబడలేదు.");
+    });
+
+    // స్పీకర్ బటన్ కోసం ఫంక్షన్ ఇంకా జోడించబడలేదు
 </script>
 
 </body>
