@@ -1,48 +1,78 @@
-
 <!DOCTYPE html>
-<html lang="te">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>మిత్ర జ్ఞాన నిధి</title>
+    <title>Mitra - Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body {
             font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 20px;
-            background-color: #f4f4f4;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
             color: #333;
         }
-        .container {
-            max-width: 800px;
-            margin: auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        .login-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
         }
-        h1, h2 {
-            color: #5a2e9b;
+        h1 {
+            color: #5c677d;
+            margin-bottom: 20px;
         }
-        p {
-            font-size: 1.1em;
+        input[type="text"], input[type="password"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #5c677d;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #4a5367;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>మిత్ర జ్ఞాన నిధి</h1>
-        <p>ఇది మిత్ర కోసం తయారు చేసిన ఒక ప్రత్యేకమైన వెబ్‌సైట్. ఇక్కడ మిత్రకు అవసరమైన సమాచారం ఉంటుంది.</p>
 
-        <h2>ఆధ్యాత్మికత</h2>
-        <p>జీవితంలో ఆధ్యాత్మికత గురించి కొన్ని సూచనలు.</p>
-        
-        <h2>ఆహారపు అలవాట్లు</h2>
-        <p>ఆరోగ్యకరమైన ఆహారపు అలవాట్లపై కొన్ని వివరాలు.</p>
+<div class="login-container">
+    <h1>మిత్ర లాగిన్</h1>
+    <p>లాగిన్ చేయడానికి మీ యూజర్‌నేమ్ మరియు పాస్‌వర్డ్ ఎంటర్ చేయండి.</p>
+    <input type="text" id="username" placeholder="యూజర్‌నేమ్">
+    <input type="password" id="password" placeholder="పాస్‌వర్డ్">
+    <button onclick="login()">లాగిన్</button>
+</div>
 
-        <h2>జ్యోతిష్యం</h2>
-        <p>నక్షత్రాల గురించి మరియు ఇతర జ్యోతిష్య విషయాల గురించి సమాచారం.</p>
-    </div>
+<script>
+    function login() {
+        var username = document.getElementById("username").value;
+        var password = document.getElementById("password").value;
+
+        // ఇక్కడ మీ యూజర్‌నేమ్ మరియు పాస్‌వర్డ్ సెట్ చేయండి
+        if (username === "mitra" && password === "1234") {
+            // లాగిన్ విజయవంతమైతే, ఈ పేజీని మారుద్దాం
+            alert("లాగిన్ విజయవంతమైంది!");
+            // భవిష్యత్తులో మనం ఇక్కడ వేరొక పేజీని ఓపెన్ చేస్తాం
+        } else {
+            alert("యూజర్‌నేమ్ లేదా పాస్‌వర్డ్ తప్పు. దయచేసి మళ్ళీ ప్రయత్నించండి.");
+        }
+    }
+</script>
+
 </body>
 </html>
-
