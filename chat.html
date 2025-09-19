@@ -41,22 +41,16 @@
         }
         .input-container {
             display: flex;
-            padding: 10px;
+            justify-content: center; /* Center the buttons */
+            padding: 20px;
             border-top: 1px solid #ccc;
-        }
-        .input-container input {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin-right: 10px;
         }
         .icon-button {
             background-color: transparent;
             border: none;
             cursor: pointer;
             padding: 10px;
-            font-size: 24px;
+            font-size: 48px; /* Bigger icon size */
             color: #5c677d;
         }
         .message {
@@ -78,7 +72,6 @@
     <div class="chat-box" id="chat-box">
         </div>
     <div class="input-container">
-        <input type="text" id="user-input" placeholder="మీ సందేశాన్ని టైప్ చేయండి...">
         <button id="mic-button" class="icon-button"><i class="fas fa-microphone"></i></button>
         <button id="speaker-button" class="icon-button"><i class="fas fa-volume-up"></i></button>
     </div>
@@ -103,45 +96,19 @@
     const db = firebase.firestore();
 
     // DOM ఎలిమెంట్స్‌ను ఎంచుకోవడం
-    const userInput = document.getElementById("user-input");
     const micButton = document.getElementById("mic-button");
     const chatBox = document.getElementById("chat-box");
-
-    // సందేశాన్ని పంపే ఫంక్షన్
-    function sendMessage() {
-        const message = userInput.value;
-        if (message.trim() === "") return;
-
-        // చాట్ బాక్స్‌లో యూజర్ సందేశాన్ని చూపించడం
-        const userMessageDiv = document.createElement("div");
-        userMessageDiv.classList.add("message");
-        userMessageDiv.textContent = message;
-        chatBox.appendChild(userMessageDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-
-        // Firebase లో సందేశాన్ని సేవ్ చేయడం
-        db.collection("messages").add({
-            text: message,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        // ఇన్పుట్ బాక్స్‌ను ఖాళీ చేయడం
-        userInput.value = "";
-    }
-
-    // Enter నొక్కితే సందేశం పంపడానికి
-    userInput.addEventListener("keyup", function(event) {
-        if (event.key === "Enter") {
-            sendMessage();
-        }
-    });
+    const speakerButton = document.getElementById("speaker-button");
 
     // మైక్ బటన్ క్లిక్ చేసినప్పుడు
     micButton.addEventListener("click", function() {
         alert("మైక్ బటన్ పనిచేస్తోంది! వాయిస్ రికార్డింగ్ ఫీచర్ ఇంకా జోడించబడలేదు.");
     });
 
-    // స్పీకర్ బటన్ కోసం ఫంక్షన్ ఇంకా జోడించబడలేదు
+    // స్పీకర్ బటన్ క్లిక్ చేసినప్పుడు
+    speakerButton.addEventListener("click", function() {
+        alert("స్పీకర్ బటన్ పనిచేస్తోంది! వాయిస్ ప్లేబ్యాక్ ఫీచర్ ఇంకా జోడించబడలేదు.");
+    });
 </script>
 
 </body>
