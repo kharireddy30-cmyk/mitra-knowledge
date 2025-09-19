@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mitra - Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e6e9f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .chat-container {
+            width: 90%;
+            max-width: 600px;
+            height: 80%;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .header {
+            background-color: #5c677d;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 20px;
+        }
+        .chat-box {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .input-container {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+        }
+        .input-container input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .input-container button {
+            background-color: #5c677d;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="header">మిత్ర - మీ స్నేహితుడు</div>
+    <div class="chat-box" id="chat-box">
+        </div>
+    <div class="input-container">
+        <input type="text" id="user-input" placeholder="మీ సందేశాన్ని టైప్ చేయండి...">
+        <button id="send-button">పంపు</button>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+<script>
+    // మీరు అందించిన Firebase కాన్ఫిగరేషన్ కోడ్
+    const firebaseConfig = {
+      apiKey: "AIzaSyBpUvSXYQa-ne8B58LLdskf0QwnQj0Jtkg",
+      authDomain: "aadhyatmika-margadarshi.firebaseapp.com",
+      projectId: "aadhyatmika-margadarshi",
+      storageBucket: "aadhyatmika-margadarshi.firebasestorage.app",
+      messagingSenderId: "179781016590",
+      appId: "1:179781016590:web:8291e54faf1ac3f520f05f",
+      measurementId: "G-5GRR9XTW2Q"
+    };
+
+    // Firebase ను ప్రారంభించడం
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // చాట్‌బాట్ లాజిక్ ఇక్కడ వస్తుంది
+</script>
+
+</body>
+</html>
+
