@@ -89,6 +89,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@google/generative-ai"></script>
 <script>
     // Firebase కాన్ఫిగరేషన్
     const firebaseConfig = {
@@ -109,13 +110,18 @@
     const chatBox = document.getElementById("chat-box");
     const synth = window.speechSynthesis;
 
+    // Google Gemini API కాన్ఫిగరేషన్
+    const GEMINI_API_KEY = AIzaSyC6srPwR2HeiDJlyCfhye5H2JI101q0El8 "YOUR_API_KEY_HERE";
+    const genAI = new GoogleGenerativeAI.GoogleGenerativeAI(GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+
     // వాయిస్ రికగ్నిషన్
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = null;
     if (SpeechRecognition) {
         recognition = new SpeechRecognition();
         recognition.continuous = false;
-        recognition.lang = 'te-IN'; // Default language to Telugu
+        recognition.lang = 'te-IN'; 
     }
 
     // మైక్ బటన్ క్లిక్ చేసినప్పుడు
@@ -128,7 +134,7 @@
         recognition.start();
     });
 
-    recognition.onresult = (event) => {
+    recognition.onresult = async (event) => {
         const transcript = event.results[0][0].transcript;
         addMessageToChat(transcript, 'user');
         micButton.style.color = "#5c677d";
@@ -139,8 +145,11 @@
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         
+        // Gemini AI నుండి జవాబును పొందడం
+        const result = await model.generateContent(transcript);
+        const responseText = result.response.text();
+        
         // మిత్ర జవాబు
-        const responseText = getMitraResponse(transcript);
         speakText(responseText);
         addMessageToChat(responseText, 'mitra');
     };
@@ -148,22 +157,6 @@
     recognition.onend = () => {
         micButton.style.color = "#5c677d";
     };
-
-    // మిత్ర జవాబు
-    function getMitraResponse(text) {
-        const lowerText = text.toLowerCase();
-        if (lowerText.includes("నమస్కారం") || lowerText.includes("హాయ్")) {
-            return "హాయ్ హర్ష! మీకు ఎలా సహాయపడగలను?";
-        } else if (lowerText.includes("ఆస్ట్రాలజీ") || lowerText.includes("జ్యోతిష్యం")) {
-            return "ఆస్ట్రాలజీ గురించి చాలా లోతైన విషయాలు తెలుసుకోవచ్చు. మీకు ఏ విషయం గురించి తెలుసుకోవాలని ఉంది?";
-        } else if (lowerText.includes("మంచి ఆహారం") || lowerText.includes("ఆహారపు అలవాట్లు")) {
-            return "ఆరోగ్యకరమైన ఆహారపు అలవాట్ల గురించి నా దగ్గర చాలా సమాచారం ఉంది. మీకు ఏ విషయం గురించి కావాలి?";
-        } else if (lowerText.includes("ధ్యానం") || lowerText.includes("ఆధ్యాత్మికం")) {
-            return "ఆధ్యాత్మికత మరియు ధ్యానం గురించి చర్చించడం నాకు చాలా ఇష్టం. మీరు ఎలాంటి సమాచారం కోరుకుంటున్నారు?";
-        } else {
-            return "క్షమించండి, మీరు అడిగిన ప్రశ్న నాకు పూర్తిగా అర్థం కాలేదు. దయచేసి మళ్ళీ ప్రయత్నించగలరా?";
-        }
-    }
 
     // టెక్స్ట్ ను వాయిస్ గా మార్చడం
     function speakText(text) {
