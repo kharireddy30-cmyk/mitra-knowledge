@@ -17,7 +17,7 @@
     const chatBox = document.getElementById("chat-box");
     const synth = window.speechSynthesis;
     let recognition;
-    let isListening = false;
+    let isListeningForKeyword = false;
 
     // Google Gemini API కాన్ఫిగరేషన్
     const GEMINI_API_KEY = "AIzaSyC6srPwR2HeiDJlyCfhye5H2JI101q0El8";
@@ -25,7 +25,7 @@
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
     // వాయిస్ రికగ్నిషన్ ఫంక్షన్
-    function startVoiceRecognition() {
+    function startListening() {
         if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
             alert("మీ బ్రౌజర్‌లో వాయిస్ రికగ్నిషన్ సపోర్ట్ లేదు. దయచేసి Chrome లేదా Firefox ఉపయోగించండి.");
             return;
@@ -33,47 +33,68 @@
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
+        recognition.continuous = false; // ఒకేసారి మాత్రమే వింటుంది
         recognition.lang = 'te-IN';
 
         micButton.style.color = "red";
-        isListening = true;
+        isListeningForKeyword = true;
         recognition.start();
 
         recognition.onresult = async (event) => {
-            let finalTranscript = '';
-            let interimTranscript = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript;
+            const transcript = event.results[0][0].transcript.trim().toLowerCase();
+            
+            if (isListeningForKeyword) {
+                if (transcript.includes("మిత్ర")) {
+                    isListeningForKeyword = false;
+                    speakText("మీరు ఇప్పుడు నాతో మాట్లాడవచ్చు.");
+                    micButton.style.color = "blue";
+                    
+                    // కీవర్డ్ తర్వాత ప్రశ్న కోసం మళ్ళీ వినండి
+                    setTimeout(() => {
+                        startListeningForQuery();
+                    }, 1000);
                 } else {
-                    interimTranscript += event.results[i][0].transcript;
+                    startListening(); // కీవర్డ్ లేకపోతే మళ్ళీ వినండి
                 }
             }
-            
-            const transcript = finalTranscript.trim().toLowerCase();
-            
-            if (transcript.includes("మిత్ర") && transcript.length > 5) { // "మిత్ర" అనే పదం తర్వాత ప్రశ్న ఉందా అని చూడటానికి
-                const userQuery = transcript.replace("మిత్ర", "").trim();
-                micButton.style.color = "blue"; // కీవర్డ్ విన్న తర్వాత రంగు మార్చండి
-                recognition.stop();
-                isListening = false;
-                
-                await processUserQuery(userQuery);
+        };
+
+        recognition.onend = () => {
+            if (isListeningForKeyword) {
+                startListening();
             }
         };
 
         recognition.onerror = (event) => {
             console.error("Speech Recognition Error:", event.error);
-            isListening = false;
             micButton.style.color = "#5c677d";
+            startListening(); // ఎర్రర్ వస్తే మళ్ళీ మొదలుపెట్టండి
+        };
+    }
+
+    function startListeningForQuery() {
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.lang = 'te-IN';
+        micButton.style.color = "green"; // ప్రశ్న కోసం వింటున్నప్పుడు రంగు మార్చండి
+        recognition.start();
+
+        recognition.onresult = async (event) => {
+            const userQuery = event.results[0][0].transcript.trim();
+            micButton.style.color = "#5c677d";
+            
+            await processUserQuery(userQuery);
+        };
+        
+        recognition.onend = () => {
+            micButton.style.color = "#5c677d";
+            startListening(); // ప్రశ్న తర్వాత మళ్ళీ కీవర్డ్ కోసం వినండి
         };
 
-        recognition.onend = () => {
-            if (isListening) {
-                recognition.start(); // నిరంతరంగా వినడానికి
-            }
+        recognition.onerror = (event) => {
+            console.error("Speech Recognition Error:", event.error);
+            micButton.style.color = "#5c677d";
+            startListening();
         };
     }
 
@@ -103,19 +124,16 @@
             addMessageToChat(errorMessage, 'mitra');
             console.error("Gemini API Error:", error);
         }
-        
-        micButton.style.color = "#5c677d";
-        startVoiceRecognition(); // మళ్ళీ వినడం మొదలుపెట్టండి
     }
-    
+
     // మైక్ బటన్ క్లిక్ చేసినప్పుడు
     micButton.addEventListener("click", () => {
-        if (isListening) {
+        if (isListeningForKeyword) {
             recognition.stop();
-            isListening = false;
+            isListeningForKeyword = false;
             micButton.style.color = "#5c677d";
         } else {
-            startVoiceRecognition();
+            startListening();
         }
     });
 
@@ -148,6 +166,5 @@
     }
 
     // పేజీ లోడ్ అయినప్పుడు ఆటోమేటిక్\u200cగా వినడం మొదలుపెట్టండి
-    window.onload = startVoiceRecognition;
-</script>
+    window.onload = startListening;
 
