@@ -4,7 +4,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 export default async function handler(request, response) {
   try {
-    const { userQuery } = await request.body;
+    const { userQuery } = request.body;
 
     if (!userQuery) {
       return response.status(400).json({ error: "Missing user query." });
