@@ -1,96 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Mitra - Chat</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #e6e9f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            color: #333;
-        }
-        .chat-container {
-            width: 90%;
-            max-width: 600px;
-            height: 80%;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .header {
-            background-color: #5c677d;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 20px;
-        }
-        .chat-box {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-        .input-container {
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-            border-top: 1px solid #ccc;
-        }
-        .icon-button {
-            background-color: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 10px;
-            font-size: 48px;
-            color: #5c677d;
-        }
-        .message {
-            background-color: #5c677d;
-            color: white;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            max-width: 80%;
-            align-self: flex-end;
-        }
-        .mitra-message {
-            background-color: #d1d8e0;
-            color: #333;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            max-width: 80%;
-            align-self: flex-start;
-        }
-    </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-</head>
-<body>
-
-<div class="chat-container">
-    <div class="header">మిత్ర - మీ స్నేహితుడు</div>
-    <div class="chat-box" id="chat-box">
-        <div class="mitra-message">నమస్కారం! నేను మీ **మిత్ర**ను. మీరు నాతో మాట్లాడటానికి **"మిత్ర"** అని చెప్పండి.</div>
-    </div>
-    <div class="input-container">
-        <button id="mic-button" class="icon-button"><i class="fas fa-microphone"></i></button>
-        <button id="speaker-button" class="icon-button"><i class="fas fa-volume-up"></i></button>
-    </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@google/generative-ai"></script>
-<script>
     // Firebase కాన్ఫిగరేషన్
     const firebaseConfig = {
       apiKey: "AIzaSyBpUvSXYQa-ne8B58LLdskf0QwnQj0Jtkg",
@@ -110,6 +17,7 @@
     const chatBox = document.getElementById("chat-box");
     const synth = window.speechSynthesis;
     let recognition;
+    let isListening = false;
 
     // Google Gemini API కాన్ఫిగరేషన్
     const GEMINI_API_KEY = "AIzaSyC6srPwR2HeiDJlyCfhye5H2JI101q0El8";
@@ -125,87 +33,96 @@
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         recognition = new SpeechRecognition();
-        recognition.continuous = true; // నిరంతరంగా వింటుంది
-        recognition.lang = 'te-IN'; // తెలుగు భాష
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'te-IN';
 
         micButton.style.color = "red";
+        isListening = true;
         recognition.start();
 
-        let listeningForKeyword = true;
-
         recognition.onresult = async (event) => {
-            const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
-            console.log("Transcript:", transcript);
-
-            if (listeningForKeyword) {
-                if (transcript.includes("మిత్ర")) {
-                    listeningForKeyword = false;
-                    speakText("మీరు నాతో మాట్లాడవచ్చు");
-                    micButton.style.color = "green";
-                    recognition.stop();
-                    // కొంతసేపు వేచి ఉండి, మళ్ళీ రికగ్నిషన్ స్టార్ట్ చేయండి
-                    setTimeout(() => {
-                        recognition.start();
-                        recognition.onresult = processUserQuery;
-                    }, 500);
+            let finalTranscript = '';
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript;
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
                 }
             }
-        };
-        
-        const processUserQuery = async (event) => {
-            const transcript = event.results[event.results.length - 1][0].transcript;
-            addMessageToChat(transcript, 'user');
-            micButton.style.color = "#5c677d";
-            recognition.stop();
             
-            // Firebase లో సందేశాన్ని సేవ్ చేయడం
-            db.collection("messages").add({
-                text: transcript,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            // Gemini AI నుండి జవాబును పొందడం
-            try {
-                const result = await model.generateContent(transcript);
-                const responseText = result.response.text();
+            const transcript = finalTranscript.trim().toLowerCase();
+            
+            if (transcript.includes("మిత్ర") && transcript.length > 5) { // "మిత్ర" అనే పదం తర్వాత ప్రశ్న ఉందా అని చూడటానికి
+                const userQuery = transcript.replace("మిత్ర", "").trim();
+                micButton.style.color = "blue"; // కీవర్డ్ విన్న తర్వాత రంగు మార్చండి
+                recognition.stop();
+                isListening = false;
                 
-                // మిత్ర జవాబు
-                speakText(responseText);
-                addMessageToChat(responseText, 'mitra');
-            } catch (error) {
-                const errorMessage = "క్షమించండి, మీ ప్రశ్నను ప్రాసెస్ చేయడంలో సమస్య వచ్చింది. దయచేసి మళ్ళీ ప్రయత్నించండి.";
-                speakText(errorMessage);
-                addMessageToChat(errorMessage, 'mitra');
-                console.error("Gemini API Error:", error);
-            } finally {
-                // జవాబు తర్వాత మళ్ళీ కీవర్డ్ కోసం వినడం మొదలుపెట్టండి
-                listeningForKeyword = true;
-                setTimeout(() => {
-                    micButton.style.color = "red";
-                    recognition.onresult = startVoiceRecognition().onresult;
-                }, 1000);
+                await processUserQuery(userQuery);
             }
         };
 
         recognition.onerror = (event) => {
-            micButton.style.color = "#5c677d";
             console.error("Speech Recognition Error:", event.error);
+            isListening = false;
+            micButton.style.color = "#5c677d";
         };
 
         recognition.onend = () => {
-            console.log("Recognition ended.");
+            if (isListening) {
+                recognition.start(); // నిరంతరంగా వినడానికి
+            }
         };
     }
 
+    async function processUserQuery(userQuery) {
+        if (!userQuery) {
+            return;
+        }
+
+        addMessageToChat(userQuery, 'user');
+        
+        // Firebase లో సందేశాన్ని సేవ్ చేయడం
+        db.collection("messages").add({
+            text: userQuery,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Gemini AI నుండి జవాబును పొందడం
+        try {
+            const result = await model.generateContent(userQuery);
+            const responseText = result.response.text();
+            
+            speakText(responseText);
+            addMessageToChat(responseText, 'mitra');
+        } catch (error) {
+            const errorMessage = "క్షమించండి, మీ ప్రశ్నను ప్రాసెస్ చేయడంలో సమస్య వచ్చింది. దయచేసి మళ్ళీ ప్రయత్నించండి.";
+            speakText(errorMessage);
+            addMessageToChat(errorMessage, 'mitra');
+            console.error("Gemini API Error:", error);
+        }
+        
+        micButton.style.color = "#5c677d";
+        startVoiceRecognition(); // మళ్ళీ వినడం మొదలుపెట్టండి
+    }
+    
     // మైక్ బటన్ క్లిక్ చేసినప్పుడు
     micButton.addEventListener("click", () => {
-        startVoiceRecognition();
+        if (isListening) {
+            recognition.stop();
+            isListening = false;
+            micButton.style.color = "#5c677d";
+        } else {
+            startVoiceRecognition();
+        }
     });
 
     // టెక్స్ట్ ను వాయిస్ గా మార్చడం
     function speakText(text) {
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'te-IN'; // Telugu voice
+        utterance.lang = 'te-IN';
         synth.speak(utterance);
     }
     
@@ -229,8 +146,8 @@
         chatBox.appendChild(messageDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
-</script>
 
-</body>
-</html>
+    // పేజీ లోడ్ అయినప్పుడు ఆటోమేటిక్\u200cగా వినడం మొదలుపెట్టండి
+    window.onload = startVoiceRecognition;
+</script>
 
