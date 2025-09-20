@@ -49,10 +49,47 @@
 
 <div class="login-container">
     <h1>మిత్ర లాగిన్</h1>
-    <input type="text" id="username" placeholder="వాడుకరి పేరు">
+    <input type="text" id="email" placeholder="ఈమెయిల్">
     <input type="password" id="password" placeholder="పాస్\u200cవర్డ్">
     <button id="login-button">లాగిన్</button>
 </div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+<script>
+    // మీ Firebase కాన్ఫిగరేషన్
+    const firebaseConfig = {
+      apiKey: "AIzaSyBpUvSXYQa-ne8B58LLdskf0QwnQj0Jtkg",
+      authDomain: "aadhyatmika-margadarshi.firebaseapp.com",
+      projectId: "aadhyatmika-margadarshi",
+      storageBucket: "aadhyatmika-margadarshi.firebasestorage.app",
+      messagingSenderId: "179781016590",
+      appId: "1:179781016590:web:8291e54faf1ac3f520f05f",
+      measurementId: "G-5GRR9XTW2Q"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    const loginButton = document.getElementById("login-button");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+
+    loginButton.addEventListener("click", () => {
+        const email = emailInput.value;
+        const password = passwordInput.value;
+
+        auth.signInWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                // లాగిన్ విజయవంతం అయితే, chat.html పేజీకి పంపించండి
+                window.location.href = "chat.html";
+            })
+            .catch((error) => {
+                alert("లాగిన్ విఫలమైంది. దయచేసి సరైన ఈమెయిల్ మరియు పాస్\u200cవర్డ్\u200cను ఎంటర్ చేయండి.");
+                console.error("Login Error:", error);
+            });
+    });
+</script>
 
 </body>
 </html>
