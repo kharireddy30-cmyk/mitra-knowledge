@@ -122,7 +122,7 @@
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         recognition = new SpeechRecognition();
-        recognition.continuous = false; // ఒక్కసారి మాట్లాడితే ఆగిపోతుంది
+        recognition.continuous = false;
         recognition.interimResults = true;
         recognition.lang = 'te-IN';
 
@@ -167,7 +167,6 @@
 
         recognition.onend = () => {
             if (isListening) {
-                // ఆటోమేటిక్\u200cగా మళ్ళీ మొదలుపెట్టకుండా ఆపండి
                 isListening = false;
                 micIcon.classList.remove("fa-beat");
                 micIcon.classList.add("fa-microphone-slash");
@@ -199,7 +198,6 @@
             const data = await response.json();
             let responseText = data.text;
             
-            // సింబల్స్ మరియు గుర్తులను తొలగించడం
             responseText = responseText.replace(/\*\*/g, "").replace(/\n/g, " ").replace(/\*/g, "").trim();
 
             speakText(responseText);
