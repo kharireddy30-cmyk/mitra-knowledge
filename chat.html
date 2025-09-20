@@ -82,7 +82,7 @@
         <div class="mitra-message">నమస్కారం! నేను మీ **మిత్ర**ను. మీరు నాతో మాట్లాడటానికి **"మిత్ర"** అని చెప్పండి.</div>
     </div>
     <div class="input-container">
-        <button id="mic-button" class="icon-button"><i class="fas fa-microphone"></i></button>
+        <button id="mic-button" class="icon-button"><i id="mic-icon" class="fas fa-microphone"></i></button>
         <button id="speaker-button" class="icon-button"><i class="fas fa-volume-up"></i></button>
     </div>
 </div>
@@ -105,11 +105,13 @@
 
     // DOM ఎలిమెంట్స్
     const micButton = document.getElementById("mic-button");
+    const micIcon = document.getElementById("mic-icon");
     const speakerButton = document.getElementById("speaker-button");
     const chatBox = document.getElementById("chat-box");
     const synth = window.speechSynthesis;
     let recognition;
     let isListening = false;
+    let speaking = false;
 
     // వాయిస్ రికగ్నిషన్ ఫంక్షన్
     function startListening() {
@@ -120,11 +122,11 @@
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         recognition = new SpeechRecognition();
-        recognition.continuous = true;
+        recognition.continuous = false; // ఒక్కసారి మాట్లాడితే ఆగిపోతుంది
         recognition.interimResults = true;
         recognition.lang = 'te-IN';
 
-        micButton.style.color = "red";
+        micIcon.classList.add("fa-beat");
         isListening = true;
         recognition.start();
 
@@ -141,17 +143,16 @@
             if (transcript.includes("మిత్ర")) {
                 const userQuery = transcript.replace("మిత్ర", "").trim();
                 
-                // రికగ్నిషన్ ఆపి, ప్రాసెస్ చేయడం
                 recognition.stop();
                 isListening = false;
-                micButton.style.color = "blue";
+                micIcon.classList.remove("fa-beat");
+                micIcon.classList.remove("fa-microphone-slash");
+                micIcon.classList.add("fa-microphone");
                 
                 if (userQuery) {
                     await processUserQuery(userQuery);
                 } else {
                     speakText("మీరు నాతో మాట్లాడవచ్చు.");
-                    // మళ్ళీ వినడం మొదలుపెట్టండి
-                    startListening();
                 }
             }
         };
@@ -159,13 +160,17 @@
         recognition.onerror = (event) => {
             console.error("Speech Recognition Error:", event.error);
             isListening = false;
-            micButton.style.color = "#5c677d";
-            startListening(); // ఎర్రర్ వస్తే మళ్ళీ మొదలుపెట్టండి
+            micIcon.classList.remove("fa-beat");
+            micIcon.classList.remove("fa-microphone-slash");
+            micIcon.classList.add("fa-microphone");
         };
 
         recognition.onend = () => {
             if (isListening) {
-                startListening();
+                // ఆటోమేటిక్\u200cగా మళ్ళీ మొదలుపెట్టకుండా ఆపండి
+                isListening = false;
+                micIcon.classList.remove("fa-beat");
+                micIcon.classList.add("fa-microphone-slash");
             }
         };
     }
@@ -177,13 +182,11 @@
 
         addMessageToChat(userQuery, 'user');
         
-        // Firebase లో సందేశాన్ని సేవ్ చేయడం
         db.collection("messages").add({
             text: userQuery,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // Vercel సర్వర్\u200cకు కనెక్ట్ అవ్వడం
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
@@ -194,8 +197,11 @@
             });
 
             const data = await response.json();
-            const responseText = data.text;
+            let responseText = data.text;
             
+            // సింబల్స్ మరియు గుర్తులను తొలగించడం
+            responseText = responseText.replace(/\*\*/g, "").replace(/\n/g, " ").replace(/\*/g, "").trim();
+
             speakText(responseText);
             addMessageToChat(responseText, 'mitra');
         } catch (error) {
@@ -205,8 +211,7 @@
             console.error("API Error:", error);
         }
         
-        micButton.style.color = "#5c677d";
-        startListening();
+        micIcon.classList.remove("fa-beat");
     }
     
     // మైక్ బటన్ క్లిక్ చేసినప్పుడు
@@ -214,7 +219,8 @@
         if (isListening) {
             recognition.stop();
             isListening = false;
-            micButton.style.color = "#5c677d";
+            micIcon.classList.remove("fa-beat");
+            micIcon.classList.add("fa-microphone-slash");
         } else {
             startListening();
         }
@@ -222,13 +228,25 @@
 
     // టెక్స్ట్ ను వాయిస్ గా మార్చడం
     function speakText(text) {
+        if (synth.speaking) {
+            synth.cancel();
+        }
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'te-IN';
+        
+        utterance.onstart = () => { speaking = true; };
+        utterance.onend = () => { speaking = false; };
+        
         synth.speak(utterance);
     }
     
     // స్పీకర్ బటన్ క్లిక్ చేసినప్పుడు
     speakerButton.addEventListener('click', () => {
+        if (speaking) {
+            synth.cancel();
+            speaking = false;
+            return;
+        }
         const lastMitraMessage = chatBox.querySelector('.mitra-message:last-child');
         if (lastMitraMessage) {
             speakText(lastMitraMessage.textContent);
@@ -253,5 +271,4 @@
 </script>
 </body>
 </html>
-
 
