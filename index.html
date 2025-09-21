@@ -1,1 +1,43 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mitra Test</title>
+</head>
+<body>
+    <h1>మిత్ర టెస్టింగ్</h1>
+    <input type="text" id="userQuery" placeholder="మీ సందేశం ఇక్కడ టైప్ చేయండి">
+    <button onclick="sendMessage()">పంపండి</button>
+    <p id="response"></p>
+
+    <script>
+        async function sendMessage() {
+            const userQuery = document.getElementById('userQuery').value;
+            if (!userQuery) {
+                alert("దయచేసి మీ సందేశాన్ని టైప్ చేయండి.");
+                return;
+            }
+
+            const responseElement = document.getElementById('response');
+            responseElement.textContent = 'ప్రాసెసింగ్...';
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userQuery: userQuery })
+                });
+
+                const data = await response.json();
+                responseElement.textContent = 'మిత్ర సమాధానం: ' + data.text;
+            } catch (error) {
+                responseElement.textContent = 'క్షమించండి, సమస్య వచ్చింది.';
+                console.error("Error:", error);
+            }
+        }
+    </script>
+</body>
+</html>
+
