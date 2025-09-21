@@ -91,7 +91,14 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@google/generative-ai"></script>
 <script>
+    // **YOUR_API_KEY_HERE** అనే చోట మీ గూగుల్ ఏపీఐ కీని పేస్ట్ చేయండి.
+    const API_KEY = "AIzaSyCxdGLb9g83GVcWhbp3BzCBjxM2m2wCK7I";
+    const { GoogleGenerativeAI } = require("@google/generative-ai");
+    const genAI = new GoogleGenerativeAI(API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    
     // DOM ఎలిమెంట్స్
     const micButton = document.getElementById("mic-button");
     const micIcon = document.getElementById("mic-icon");
@@ -171,19 +178,9 @@
         addMessageToChat(userQuery, 'user');
 
         try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ userQuery }),
-            });
-
-            const data = await response.json();
-            let responseText = data.text;
+            const result = await model.generateContent(userQuery);
+            const responseText = result.response.text();
             
-            responseText = responseText.replace(/\*\*/g, "").replace(/\n/g, " ").replace(/\*/g, "").trim();
-
             speakText(responseText);
             addMessageToChat(responseText, 'mitra');
         } catch (error) {
